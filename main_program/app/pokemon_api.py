@@ -2,6 +2,11 @@ import pyautogui as pyg
 import discord
 import asyncio
 import threading
+import logging
+import subprocess
+import sys
+
+logger = logging.getLogger()
 
 api_key = "MTIwNzA0Mzk3OTA0NTExMzkyOA.GGefJv.oW74Bj1A-EqEjwhgtv33XK84xfiWLGwj9cBkVs"
 channel_id = 1206692419999891506
@@ -10,27 +15,55 @@ message_buffer = []
 
 thread_killer = True
 
+
+if sys.platform.startswith("win"):
+    operating_system = "windows"
+else:
+    operating_system = "linux"
+        
+
+def getwindowrect(window_title="mGBA"):
+    if operating_system == "windows":
+        try:
+            gamewin = pyg.getWindowsWithTitle("mGBA")[0]
+            return [gamewin.left + 8, gamewin.top + 52, gamewin.right - 8, gamewin.bottom - 8]
+        except:
+            return None
+    else:
+        try:
+            output = subprocess.check_output("wmctrl -lG | grep 'mGBA'", shell=True, text=True).split()
+            return [int(output[2]) + 8, int(output[3]) + 52, int(output[4]) - 8, int(output[5]) - 8]
+        except:
+            return None
+        
+
 class DiscordClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.skipper = False
 
+    # we're gonna try and get it to just edit the last message with the new screenshot as to create a more 'game-esk' screen
     async def game(self):
         print("Game init")
         
         self.skipper = True
         channel = self.get_channel(channel_id)
 
-        gamewin = pyg.getWindowsWithTitle("mGBA")[0]
-        screen = pyg.screenshot().crop([gamewin.left + 8, gamewin.top + 52, gamewin.right - 8, gamewin.bottom - 8])        
-        screen.save("frame.png")
+        gamewin = getwindowrect()
+        if gamewin:
 
-        frame = await channel.send(file=discord.File("frame.png"))
+            screen = pyg.screenshot().crop([gamewin.left + 8, gamewin.top + 52, gamewin.right - 8, gamewin.bottom - 8])
+            screen.save("frame.png")
 
-        await asyncio.sleep(3)
-        await self.fastnuke()
-        
+            frame = await channel.send(file=discord.File("frame.png"))
+
+            await asyncio.sleep(3)
+            await self.fastnuke()
+        else:
+            print("Failed to capture game window!")
+    
+    # fast nuke is for our refresh, hence we're skipping our own stuff, since well if we edit our last message we're chilling.
     async def fastnuke(self):
         print("Wiping Frame")
         channel = self.get_channel(channel_id)
@@ -47,7 +80,6 @@ class DiscordClient(discord.Client):
         await channel.send("Nuking the entire channel in 5")
         await asyncio.sleep(5)
         
-        print(len(channel.history))
         async for i in channel.history(limit=None):
             await i.delete()
 
@@ -101,9 +133,15 @@ class DiscordClient(discord.Client):
         
 
         message_buffer.clear()
+        
         await self.close()
         await self.http.close()
-        asyncio.get_event_loop().close()
+        await self.http.connector.close()
+
+        loop = asyncio.get_event_loop()
+        loop.stop()
+        loop.close()        
+        
         
         
             
@@ -130,6 +168,7 @@ def main():
     gamer = False
 
     while True:
+
         if gamer:
             message_buffer.append(message)
             client = DiscordClient(intents=discord.Intents.default())
@@ -149,8 +188,8 @@ def main():
                 client = DiscordClient(intents=discord.Intents.default())
                 client.run(api_key, reconnect=False)
 
-            if message == "/nuke":
 
+            if message == "/nuke":
                 message_buffer.append(message)
                 client = DiscordClient(intents=discord.Intents.default())
                 client.run(api_key, reconnect=False)
@@ -159,7 +198,10 @@ def main():
 
                 message_buffer.append(message)
                 client = DiscordClient(intents=discord.Intents.default())
+
                 client.run(api_key, reconnect=False)
+                                
+
                 
                 
             
@@ -169,5 +211,7 @@ def main():
 
 
 if __name__ == "__main__":
+    print(f"Operating system is:{operating_system}")
+
     main()
     

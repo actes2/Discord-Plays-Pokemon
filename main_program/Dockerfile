@@ -1,10 +1,11 @@
 FROM ubuntu:latest
-COPY ./firefox.tar.bz2 /opt/ 
-COPY ./{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}.xpi /opt/
-COPY ./mgba.appimage /game/
-COPY ./pkmn_ultravhak.gba /game/
-COPY ./app/requirements.txt /
-COPY ./config.ini /
+WORKDIR /
+COPY ./docker/firefox.tar.bz2 ./docker/{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}.xpi /opt/ 
+
+COPY ./docker/mgba.appimage ./docker/pkmn_ultravhak.gba /game/
+COPY ./docker/config.ini /
+COPY ./app/pokemon_api.py ./app/requirements.txt /app/
+
 ENV DISPLAY=:20
 ENV USER=root
 ENV DEBIAN_FRONTEND noninteractive
@@ -12,7 +13,7 @@ EXPOSE 8894:8894
 
 RUN apt-get update && \
 apt-get install apt-utils -f -y && \
-apt-get install python3 -f -y && \
+apt-get install python3 python3-tk python3-dev -f -y && \
 apt-get install pip -f -y && \
 apt-get install x11vnc -f -y && \
 apt-get install net-tools -f -y && \
