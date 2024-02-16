@@ -1,0 +1,10 @@
+2024-02-15 17:36:30,782 - discord.client - WARNING - PyNaCl is not installed, voice will NOT be supported
+2024-02-15 17:36:30,786 - asyncio - DEBUG - Using proactor: IocpProactor
+2024-02-15 17:36:30,786 - discord.client - INFO - logging in using static token
+2024-02-15 17:36:31,839 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: b60eeb63f4b311b45f738c3fd8115999).
+2024-02-15 17:37:01,602 - asyncio - DEBUG - Using proactor: IocpProactor
+2024-02-15 17:37:01,602 - discord.client - INFO - logging in using static token
+2024-02-15 17:37:02,532 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: cf381a2b8d333740ebb7f9a2e1bd45ac).
+2024-02-15 17:37:32,151 - asyncio - DEBUG - Using proactor: IocpProactor
+2024-02-15 17:37:32,155 - discord.client - INFO - logging in using static token
+2024-02-15 17:37:33,481 - discord.gateway - INFO - Shard ID None has connected to Gateway (Session ID: 51f3f6c29c364163597a5734b4ad68e2).
