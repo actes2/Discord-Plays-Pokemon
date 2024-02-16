@@ -4,11 +4,12 @@ import asyncio
 import threading
 import logging
 import subprocess
-import dotenv
+from dotenv import load_dotenv
+import os
 import sys
 
 logger = logging.getLogger()
-api_key = "MTIwNzA0Mzk3OTA0NTExMzkyOA.GGefJv.oW74Bj1A-EqEjwhgtv33XK84xfiWLGwj9cBkVs"
+api_key = os.getenv("DISCORD_API_TOKEN")
 channel_id = 1206692419999891506
 
 message_buffer = []
@@ -26,13 +27,13 @@ def getwindowrect(window_title="mGBA"):
     if operating_system == "windows":
         try:
             gamewin = pyg.getWindowsWithTitle("mGBA")[0]
-            return [gamewin.left + 8, gamewin.top + 52, gamewin.right - 8, gamewin.bottom - 8]
+            return [gamewin.left + 11, gamewin.top + 76, gamewin.right - 11, gamewin.bottom - 11]
         except:
             return None
     else:
         try:
             output = subprocess.check_output("wmctrl -lG | grep 'mGBA'", shell=True, text=True).split()
-            return [int(output[2]) + 8, int(output[3]) + 52, int(output[4]) - 8, int(output[5]) - 8]
+            return [int(output[2]) + 11, int(output[3]) + 76, int(output[4]) - 11, int(output[5]) - 11]
         except:
             return None
         
@@ -50,6 +51,7 @@ class DiscordClient(discord.Client):
         
         self.skipper = True
         channel = self.get_channel(channel_id)
+        
         
         
 
@@ -209,6 +211,6 @@ def main():
 
 if __name__ == "__main__":
     print(f"Operating system is:{operating_system}")
-
+    load_dotenv()
     main()
     
