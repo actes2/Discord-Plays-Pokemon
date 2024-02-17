@@ -1,6 +1,5 @@
 FROM ubuntu:latest
 WORKDIR /
-COPY ./docker/firefox.tar.bz2 ./docker/{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}.xpi /opt/ 
 
 COPY ./docker/mgba.appimage ./docker/pkmn_ultravhak.gba /game/
 COPY ./docker/config.ini /
@@ -31,12 +30,6 @@ apt-get install libxkbcommon0 -f -y && \
 apt-get install libxkbcommon-x11-0 -f -y && \
 apt-get install gnome-screenshot -f -y && \
 apt-get install xvfb -f -y && \
-# tar xjf /opt/firefox.tar.bz2 && \
-# mv /firefox /opt/ && \
-# ln -s /opt/firefox/firefox /bin/firefox && \
-# mkdir /opt/firefox/distribution && \
-# mkdir /opt/firefox/distribution/extensions && \
-# mv '/opt/{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}.xpi' '/opt/firefox/distribution/extensions/' && \
 mkdir ~/.vnc && \
 touch ~/.vnc/passwd && \
 DISPLAY=:20 && \
@@ -44,10 +37,8 @@ export DISPLAY && \
 x11vnc -storepasswd "L3tme1n" ~/.vnc/passwd && \
 echo "exec openbox-session &" > ~/.xinitrc && \
 echo "exec xterm" >> ~/.xinitrc && \
+echo "Xvfb $DISPLAY -screen 0 1024x768x16 &" >> /opt/start_script.sh && \
 echo "/usr/bin/x11vnc -forever -usepw -rfbport 8894 -create &" > /opt/start_script.sh && \
-echo "echo 'Executed primary loop, connect to port 8894 to view screen; press enter to quit'" >> /opt/start_script.sh && \
-echo "while [-z '$(xdpyinfo &>/dev/null)']; do echo 'awaiting proper xsession before starting game and python script'; sleep 1; done" >> /opt/start_script.sh && \
-echo "sleep 5" >> /opt/start_script.sh && \
 echo "/game/mgba.appimage --appimage-extract" >> /opt/start_script.sh && \
 echo "mkdir ~/.config" >> /opt/start_script.sh && \
 echo "mkdir ~/.config/mgba/" >> /opt/start_script.sh && \

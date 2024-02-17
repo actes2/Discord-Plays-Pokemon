@@ -24,7 +24,16 @@ if sys.platform.startswith("win"):
     operating_system = "windows"
 else:
     operating_system = "linux"
-        
+
+
+def is_game_up() -> bool:
+    try:
+        subprocess.check_output("wmctrl -lG | grep 'mGBA'", shell=True, text=True).split()
+        return True
+    except:
+        return False
+    
+    
 
 def getwindowrect(window_title="mGBA"):
     if operating_system == "windows":
@@ -36,10 +45,11 @@ def getwindowrect(window_title="mGBA"):
     else:
         try:
             output = subprocess.check_output("wmctrl -lG | grep 'mGBA'", shell=True, text=True).split()
-            return [int(output[2]) + 11, int(output[3]) + 76, int(output[4]) - 11, int(output[5]) - 11]
+            return [int(output[2]), int(output[3]) + 2, int(output[4]), int(output[5]) - 21]
         except:
             return None
-        
+
+
 async def act_on_action(action):
     if action == "!a":
         pyg.keyDown("x")
@@ -82,6 +92,7 @@ async def act_on_action(action):
         await asyncio.sleep(0.1)
         pyg.keyUp("s")
 
+
 async def perform_game_action(action):
     if "+" in action:
         b_action = action.split("+")
@@ -91,6 +102,7 @@ async def perform_game_action(action):
             await act_on_action(b_action[0])
     else:
         await act_on_action(action)
+
 
 async def check_game_action(action: str):
     keywords = ("!a", "!b", "!start", "!select", "!lb", "!rb", "!u", "!up", "!d", "!down", "!l", "!left", "!r", "!right")
@@ -105,6 +117,7 @@ class DiscordClient(discord.Client):
         self.skipper = False
         self.command = ""
 
+
     # we're gonna try and get it to just edit the last message with the new screenshot as to create a more 'game-esk' screen
     async def game(self):
         
@@ -118,7 +131,12 @@ class DiscordClient(discord.Client):
 
         gamewin = getwindowrect()
         if gamewin:
-            screen = pyg.screenshot().crop(gamewin)
+
+            if operating_system == "windows":
+                screen = pyg.screenshot().crop(gamewin)
+            else:
+                screen = pyg.screenshot(region=(gamewin))
+
             screen.save("frame.png")
 
             if msgcnt > 1:
@@ -191,7 +209,10 @@ class DiscordClient(discord.Client):
 
         gamewin = getwindowrect()
         if gamewin:
-            screen = pyg.screenshot().crop(gamewin)
+            if operating_system == "windows":
+                screen = pyg.screenshot().crop(gamewin)
+            else:
+                screen = pyg.screenshot(region=(gamewin))
             screen.save("frame.png")
 
             frame = await channel.send(file=discord.File("frame.png"))
@@ -269,7 +290,6 @@ def game_runner():
     print("game_loop_exited!")
 
 
-
 def first_time_setup():
     disc_api_key = input("Enter bots api key:")
     chan = input("Enter channel id:")
@@ -287,13 +307,55 @@ def first_time_setup():
                 lines[x] = f"CHANNEL_ID={chan}"
     
 
+def start_game_window() -> bool:
+    try:
+        subprocess.check_output("/squashfs-root/AppRun /game/pkmn_ultravhak.gba &", shell=True, text=True)
+        return True
+    except Exception as e:
+        print(f"Failed to start subprocess:{e}")
+        return False
+
+
 def main():
     print("init")
 
     thread_killer = False
 
+    # To auto start the game-render loop and bot just run: docker run -it -p 8894:8894 -e AUTO="start" poke_vnc
+    auto_start = os.getenv("AUTO")
+
     while True:
-            message = input("Message here:")
+            if not auto_start:
+                message = input("Message here:")
+            else:
+                message = "/game"
+            
+            if message == "/help":
+                tutorial = """
+                Pokemon_API driver for our container:
+
+                commands:
+
+                /first:\t is for configuring the API-KEY And Channel_ID in the local .env
+
+                /debug:\t is a dry-run /game. It just runs one frame and does all the game things.
+
+                /kill:\t I'm not even sure this works? It's a variable hardstop for telling all returning threads to commit neck.
+
+                /nuke:\t Deletes all messages in the channel in .env
+
+                /ss:\t Takes a screenshot and then removes it after 5 seconds
+
+                /exit:\t Exits the application and container
+
+                /send-#input#:\t Sends a message to the .env channel, which is delimited by -'s. Then deletes it after 5 seconds
+
+                /game:\t Runs our 'game-render-loop'
+               
+                """
+
+                print(tutorial)
+
 
             if message == "/debug":
                 intents = discord.Intents.default()
@@ -323,20 +385,24 @@ def main():
                 return
             
             if message == "/start_window":
-                try:
-                    subprocess.check_output("/squashfs-root/AppRun /game/pkmn_ultravhak.gba &", shell=True, text=True)
-                except Exception as e:
-                    print(f"Failed to start subprocess:{e}")
+                start_game_window()
 
             if message == "/game":
-                if not thread_killer:
-                    thread_killer = True
+                if not is_game_up:
+                    start_game_window()
 
-                    thread = threading.Thread(target=game_runner)
-                    thread.start()
-                    print("Starting game thread!")
+                if is_game_up:
+                    if not thread_killer:
+                        thread_killer = True
+
+                        thread = threading.Thread(target=game_runner)
+                        thread.start()
+                        print("Starting game thread!")
+                    else:
+                        print("Game thread already started!!")
                 else:
-                    print("Game thread already started!!")
+                    print("Game appears to actually not be up!")
+                    print("run /start_window and try again")
 
             if message == "/first":
                 first_time_setup()
