@@ -2,4 +2,4 @@ discord
 pyautogui
 PyGetWindow
 pillow
-dotenv
+python-dotenv

@@ -29,13 +29,14 @@ apt-get install libasound2 -f -y && \
 apt-get install xinit -f -y && \
 apt-get install libxkbcommon0 -f -y && \
 apt-get install libxkbcommon-x11-0 -f -y && \
+apt-get install gnome-screenshot -f -y && \
 apt-get install xvfb -f -y && \
-tar xjf /opt/firefox.tar.bz2 && \
-mv /firefox /opt/ && \
-ln -s /opt/firefox/firefox /bin/firefox && \
-mkdir /opt/firefox/distribution && \
-mkdir /opt/firefox/distribution/extensions && \
-mv '/opt/{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}.xpi' '/opt/firefox/distribution/extensions/' && \
+# tar xjf /opt/firefox.tar.bz2 && \
+# mv /firefox /opt/ && \
+# ln -s /opt/firefox/firefox /bin/firefox && \
+# mkdir /opt/firefox/distribution && \
+# mkdir /opt/firefox/distribution/extensions && \
+# mv '/opt/{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}.xpi' '/opt/firefox/distribution/extensions/' && \
 mkdir ~/.vnc && \
 touch ~/.vnc/passwd && \
 DISPLAY=:20 && \
@@ -52,7 +53,7 @@ echo "mkdir ~/.config" >> /opt/start_script.sh && \
 echo "mkdir ~/.config/mgba/" >> /opt/start_script.sh && \
 echo "mv /config.ini ~/.config/mgba/" >> /opt/start_script.sh && \
 echo "/squashfs-root/AppRun /game/pkmn_ultravhak.gba &" >> /opt/start_script.sh && \
-echo "pip install -r /app/requirements" >> /opt/start_script.sh && \
+echo "pip install -r /app/requirements.txt" >> /opt/start_script.sh && \
 echo "python3 /app/pokemon_api.py" >> /opt/start_script.sh && \
 chmod +x /opt/start_script.sh
 

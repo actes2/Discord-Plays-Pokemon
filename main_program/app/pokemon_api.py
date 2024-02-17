@@ -319,6 +319,15 @@ def main():
             if "/send-" in message:
                 command_and_wait(message)
 
+            if message == "/exit":
+                return
+            
+            if message == "/start_window":
+                try:
+                    subprocess.check_output("/squashfs-root/AppRun /game/pkmn_ultravhak.gba &", shell=True, text=True)
+                except Exception as e:
+                    print(f"Failed to start subprocess:{e}")
+
             if message == "/game":
                 if not thread_killer:
                     thread_killer = True
