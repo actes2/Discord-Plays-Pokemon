@@ -52,6 +52,7 @@ echo "mkdir ~/.config" >> /opt/start_script.sh && \
 echo "mkdir ~/.config/mgba/" >> /opt/start_script.sh && \
 echo "mv /config.ini ~/.config/mgba/" >> /opt/start_script.sh && \
 echo "/squashfs-root/AppRun /game/pkmn_ultravhak.gba &" >> /opt/start_script.sh && \
+echo "pip install -r /app/requirements" >> /opt/start_script.sh && \
 echo "python3 /app/pokemon_api.py" >> /opt/start_script.sh && \
 chmod +x /opt/start_script.sh
 
