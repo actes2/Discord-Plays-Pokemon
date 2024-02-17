@@ -38,7 +38,8 @@ x11vnc -storepasswd "L3tme1n" ~/.vnc/passwd && \
 echo "exec openbox-session &" > ~/.xinitrc && \
 echo "exec xterm" >> ~/.xinitrc && \
 echo "Xvfb $DISPLAY -screen 0 1024x768x16 &" >> /opt/start_script.sh && \
-echo "/usr/bin/x11vnc -forever -usepw -rfbport 8894 -create &" > /opt/start_script.sh && \
+echo "sleep 3" >> /opt/start_script.sh && \
+#echo "/usr/bin/x11vnc -forever -usepw -rfbport 8894 -create &" > /opt/start_script.sh && \
 echo "/game/mgba.appimage --appimage-extract" >> /opt/start_script.sh && \
 echo "mkdir ~/.config" >> /opt/start_script.sh && \
 echo "mkdir ~/.config/mgba/" >> /opt/start_script.sh && \

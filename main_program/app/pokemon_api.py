@@ -325,10 +325,10 @@ def main():
     auto_start = os.getenv("AUTO")
 
     while True:
-            if not auto_start:
-                message = input("Message here:")
-            else:
+            if auto_start == "start":
                 message = "/game"
+            else:
+                message = input("Message here:")
             
             if message == "/help":
                 tutorial = """
