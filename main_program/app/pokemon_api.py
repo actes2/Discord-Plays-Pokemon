@@ -1,4 +1,5 @@
 import pyautogui as pyg
+from typing import List
 import discord
 import asyncio
 import threading
@@ -7,6 +8,8 @@ import subprocess
 from dotenv import load_dotenv
 import os
 import sys
+
+load_dotenv()
 
 logger = logging.getLogger()
 api_key = os.getenv("DISCORD_API_TOKEN")
@@ -37,6 +40,64 @@ def getwindowrect(window_title="mGBA"):
         except:
             return None
         
+async def act_on_action(action):
+    if action == "!a":
+        pyg.keyDown("x")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("x")
+    if action == "!b":
+        pyg.keyDown("z")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("z")
+    if action == "!u" or action == "!up":
+        pyg.keyDown("up")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("up")
+    if action == "!d" or action == "!down":
+        pyg.keyDown("down")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("down")
+    if action == "!l" or action == "!left":
+        pyg.keyDown("left")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("left")
+    if action == "!r" or action == "!right":
+        pyg.keyDown("right")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("right")
+    if action == "!start":
+        pyg.keyDown("enter")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("enter")
+    if action == "!select":
+        pyg.keyDown("backspace")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("backspace")
+    if action == ("!lb"):
+        pyg.keyDown("a")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("a")
+    if action == ("!rb"):
+        pyg.keyDown("s")
+        await asyncio.sleep(0.1)
+        pyg.keyUp("s")
+
+async def perform_game_action(action):
+    if "+" in action:
+        b_action = action.split("+")
+        times = int(b_action[1])
+        for _ in range(0, times):
+            await asyncio.sleep(0.5)
+            await act_on_action(b_action[0])
+    else:
+        await act_on_action(action)
+
+async def check_game_action(action: str):
+    print("Check gmae action is hit")
+    keywords = ("!a", "!b", "!start", "!select", "!lb", "!rb", "!u", "!up", "!d", "!down", "!l", "!left", "!r", "!right")
+    if action.startswith(keywords):
+        await perform_game_action(action)
+
 
 class DiscordClient(discord.Client):
     def __init__(self, *args, **kwargs):
@@ -49,22 +110,67 @@ class DiscordClient(discord.Client):
     async def game(self):
         print("Game init")
         
-        self.skipper = True
         channel = self.get_channel(channel_id)
-        
-        
-        
+        msgcnt = 0
+        all_messages: List[discord.Message] = []
 
+        async for x in channel.history(limit=None):
+            msgcnt += 1
+            all_messages.append(x)
+
+        print("got channel")
         gamewin = getwindowrect()
         if gamewin:
-
-            screen = pyg.screenshot().crop([gamewin.left + 8, gamewin.top + 52, gamewin.right - 8, gamewin.bottom - 8])
+            print("Got game window")
+            screen = pyg.screenshot().crop(gamewin)
             screen.save("frame.png")
+            print("Made it past our screenshot save?!?!")
 
-            frame = await channel.send(file=discord.File("frame.png"))
+            print(f"number of messages before we figure out wtf to do: {msgcnt}")
+            if msgcnt > 1:
+                for msg in all_messages:
+                    print(f"{msg.content}\n")
+                    if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
+                        print("Non bot author found!!!!")
+
+                        await check_game_action(str(msg.content))
+                await self.fastnuke()
+            if msgcnt == 0:
+                frame = await channel.send(file=discord.File("frame.png"))
+            if msgcnt == 1:
+                l_msg = all_messages[0]
+                print(f"attachments: {type(l_msg.attachments[0])}")
+                await l_msg.edit(attachments=[discord.File("frame.png")], content="Commands:\n\n!a !b !start !select !lb !rb !up !down !left !right\n\nIf you tag a + after a command followed by a number ex: 'up+5' the bot will run that command that many times!\n\n")
+
+                
+                #await l_msg.edit(embed=discord.File("frame.png"))
+                
+                #frame = await channel.last_message.edit(attachments=discord.File("frame.png"))
+            print("Made it through edit or make new message block")
 
             await asyncio.sleep(3)
+
+            msgcnt = 0
+            all_messages: List[discord.Message] = []
+
+            async for x in channel.history(limit=None):
+                msgcnt += 1
+                all_messages.append(x)
+
+            print(f"\n{all_messages} the length is: {len(all_messages)}")
+            if len(all_messages) > 1:
+                print(all_messages[1].content)
+
+            for msg in all_messages:
+                print(f"{msg.content}\n")
+                if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
+                    print("Non bot author found!!!!")
+                    await check_game_action(str(msg.content))
+            
+            print("made it to fast nuke")
             await self.fastnuke()
+
+            
         else:
             print("Failed to capture game window!")
     
@@ -74,11 +180,24 @@ class DiscordClient(discord.Client):
         print("Wiping Frame")
         channel = self.get_channel(channel_id)
         
-        messages = channel.history(limit=None, oldest_first=True)
+        msgcnt = 0
+        all_messages: List[discord.Message] = []
+
+        async for x in channel.history(limit=None):
+            msgcnt += 1
+            all_messages.append(x)
+
         
-        async for msg in messages:
-            if channel.message_count > 1:
+        for msg in all_messages:
+            if msgcnt > 1:
                 await msg.delete()
+            msgcnt -= 1
+
+        # messages = await channel.history(limit=None, oldest_first=True)
+        
+        # async for msg in messages:
+        #     if channel.message_count > 1 and not msg.author.name == "actes_plays_pokemon":
+        #         await msg.delete()
 
 
     async def nuke(self):
@@ -161,6 +280,21 @@ def command_and_wait(command):
     thread.start()
 
 
+def game_runner():
+    print(thread_killer)
+    while thread_killer:
+        print("\ninit_game_loop\n")
+        intents = discord.Intents.default()
+        intents.message_content = True
+
+        client = DiscordClient(intents=intents)
+        client.command = "/game"
+        client.run(api_key, reconnect=False, log_handler=None)
+
+    print("game_loop_exited!")
+
+
+
 def first_time_setup():
     chan = input("Enter channel id:")
     chan
@@ -172,7 +306,7 @@ def main():
     # thread1 = threading.Thread(target=bot_execution_thread)
     # thread1.start()
     gamer = False
-
+    thread_killer = False
     
 
     while True:
@@ -184,12 +318,22 @@ def main():
 
         else:
             message = input("Message here:")
+
+            if message == "/debug":
+
+                intents = discord.Intents.default()
+                intents.message_content = True
+
+                client = DiscordClient(intents=intents)
+                client.command = "/game"
+                client.run(api_key, reconnect=False)
+
             if message == "/whoami":
                 command_and_wait(message)
 
             if message == '/kill':
                 thread_killer = False
-                print("killed all threads")
+                print("Killing game thread!!")
             
             if message == "/ss":
                 command_and_wait(message)
@@ -200,8 +344,15 @@ def main():
             if "/send-" in message:
                 command_and_wait(message)
 
-            if message == "/play":
-                pass
+            if message == "/game":
+                if not thread_killer:
+                    thread_killer = True
+
+                    thread = threading.Thread(target=game_runner)
+                    thread.start()
+                    print("Starting game thread!")
+                else:
+                    print("Game thread already started!!")
 
             if message == "/first":
                 first_time_setup()
@@ -211,6 +362,5 @@ def main():
 
 if __name__ == "__main__":
     print(f"Operating system is:{operating_system}")
-    load_dotenv()
     main()
     
