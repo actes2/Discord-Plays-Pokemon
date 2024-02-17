@@ -4,7 +4,7 @@ COPY ./docker/firefox.tar.bz2 ./docker/{a6c4a591-f1b2-4f03-b3ff-767e5bedf4e7}.xp
 
 COPY ./docker/mgba.appimage ./docker/pkmn_ultravhak.gba /game/
 COPY ./docker/config.ini /
-COPY ./app/pokemon_api.py ./app/requirements.txt /app/
+COPY ./app/pokemon_api.py ./app/requirements.txt ./app/.env /app/
 
 ENV DISPLAY=:20
 ENV USER=root
@@ -52,7 +52,7 @@ echo "mkdir ~/.config" >> /opt/start_script.sh && \
 echo "mkdir ~/.config/mgba/" >> /opt/start_script.sh && \
 echo "mv /config.ini ~/.config/mgba/" >> /opt/start_script.sh && \
 echo "/squashfs-root/AppRun /game/pkmn_ultravhak.gba &" >> /opt/start_script.sh && \
-echo "while true; do sleep 1; done" >> /opt/start_script.sh && \
+echo "python3 /app/pokemon_api.py" >> /opt/start_script.sh && \
 chmod +x /opt/start_script.sh
 
 CMD "/opt/start_script.sh"

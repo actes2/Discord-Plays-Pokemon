@@ -13,7 +13,7 @@ load_dotenv()
 
 logger = logging.getLogger()
 api_key = os.getenv("DISCORD_API_TOKEN")
-channel_id = 1206692419999891506
+channel_id = int(os.getenv("CHANNEL_ID"))
 
 message_buffer = []
 
@@ -93,7 +93,6 @@ async def perform_game_action(action):
         await act_on_action(action)
 
 async def check_game_action(action: str):
-    print("Check gmae action is hit")
     keywords = ("!a", "!b", "!start", "!select", "!lb", "!rb", "!u", "!up", "!d", "!down", "!l", "!left", "!r", "!right")
     if action.startswith(keywords):
         await perform_game_action(action)
@@ -108,7 +107,6 @@ class DiscordClient(discord.Client):
 
     # we're gonna try and get it to just edit the last message with the new screenshot as to create a more 'game-esk' screen
     async def game(self):
-        print("Game init")
         
         channel = self.get_channel(channel_id)
         msgcnt = 0
@@ -118,37 +116,25 @@ class DiscordClient(discord.Client):
             msgcnt += 1
             all_messages.append(x)
 
-        print("got channel")
         gamewin = getwindowrect()
         if gamewin:
-            print("Got game window")
             screen = pyg.screenshot().crop(gamewin)
             screen.save("frame.png")
-            print("Made it past our screenshot save?!?!")
 
-            print(f"number of messages before we figure out wtf to do: {msgcnt}")
             if msgcnt > 1:
                 for msg in all_messages:
-                    print(f"{msg.content}\n")
                     if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
-                        print("Non bot author found!!!!")
-
                         await check_game_action(str(msg.content))
                 await self.fastnuke()
+
             if msgcnt == 0:
                 frame = await channel.send(file=discord.File("frame.png"))
+
             if msgcnt == 1:
                 l_msg = all_messages[0]
-                print(f"attachments: {type(l_msg.attachments[0])}")
                 await l_msg.edit(attachments=[discord.File("frame.png")], content="Commands:\n\n!a !b !start !select !lb !rb !up !down !left !right\n\nIf you tag a + after a command followed by a number ex: 'up+5' the bot will run that command that many times!\n\n")
 
-                
-                #await l_msg.edit(embed=discord.File("frame.png"))
-                
-                #frame = await channel.last_message.edit(attachments=discord.File("frame.png"))
-            print("Made it through edit or make new message block")
-
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)
 
             msgcnt = 0
             all_messages: List[discord.Message] = []
@@ -157,17 +143,12 @@ class DiscordClient(discord.Client):
                 msgcnt += 1
                 all_messages.append(x)
 
-            print(f"\n{all_messages} the length is: {len(all_messages)}")
-            if len(all_messages) > 1:
-                print(all_messages[1].content)
-
             for msg in all_messages:
-                print(f"{msg.content}\n")
                 if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
-                    print("Non bot author found!!!!")
+                    
                     await check_game_action(str(msg.content))
             
-            print("made it to fast nuke")
+            
             await self.fastnuke()
 
             
@@ -192,12 +173,6 @@ class DiscordClient(discord.Client):
             if msgcnt > 1:
                 await msg.delete()
             msgcnt -= 1
-
-        # messages = await channel.history(limit=None, oldest_first=True)
-        
-        # async for msg in messages:
-        #     if channel.message_count > 1 and not msg.author.name == "actes_plays_pokemon":
-        #         await msg.delete()
 
 
     async def nuke(self):
@@ -281,7 +256,7 @@ def command_and_wait(command):
 
 
 def game_runner():
-    print(thread_killer)
+    #print(thread_killer)
     while thread_killer:
         print("\ninit_game_loop\n")
         intents = discord.Intents.default()
@@ -296,31 +271,31 @@ def game_runner():
 
 
 def first_time_setup():
+    disc_api_key = input("Enter bots api key:")
     chan = input("Enter channel id:")
-    chan
+
+    with open(".env", "r") as file:
+        lines = file.readlines()
+
+    with open(".env", "w") as file:
+        for x, line in enumerate(lines):
+
+            if line.startswith("DISCORD_API_TOKEN="):
+                lines[x] = f"DISCORD_API_TOKEN={disc_api_key}"
+
+            if line.startswith("CHANNEL_ID="):
+                lines[x] = f"CHANNEL_ID={chan}"
+    
 
 def main():
     print("init")
 
-    
-    # thread1 = threading.Thread(target=bot_execution_thread)
-    # thread1.start()
-    gamer = False
     thread_killer = False
-    
 
     while True:
-
-        if gamer:
-            message_buffer.append(message)
-            client = DiscordClient(intents=discord.Intents.default())
-            client.run(api_key, reconnect=False)
-
-        else:
             message = input("Message here:")
 
             if message == "/debug":
-
                 intents = discord.Intents.default()
                 intents.message_content = True
 
@@ -358,8 +333,6 @@ def main():
                 first_time_setup()
                 
                 
-
-
 if __name__ == "__main__":
     print(f"Operating system is:{operating_system}")
     main()
