@@ -5,6 +5,7 @@ import asyncio
 import threading
 import logging
 import subprocess
+from time import sleep
 from dotenv import load_dotenv
 import os
 import sys
@@ -50,64 +51,64 @@ def getwindowrect(window_title="mGBA"):
             return None
 
 
-async def act_on_action(action):
+def act_on_action(action):
     if action == "!a":
         pyg.keyDown("x")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("x")
     if action == "!b":
         pyg.keyDown("z")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("z")
     if action == "!u" or action == "!up":
         pyg.keyDown("up")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("up")
     if action == "!d" or action == "!down":
         pyg.keyDown("down")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("down")
     if action == "!l" or action == "!left":
         pyg.keyDown("left")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("left")
     if action == "!r" or action == "!right":
         pyg.keyDown("right")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("right")
     if action == "!start":
         pyg.keyDown("enter")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("enter")
     if action == "!select":
         pyg.keyDown("backspace")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("backspace")
     if action == ("!lb"):
         pyg.keyDown("a")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("a")
     if action == ("!rb"):
         pyg.keyDown("s")
-        await asyncio.sleep(0.1)
+        sleep(0.1)
         pyg.keyUp("s")
 
 
-async def perform_game_action(action):
+def perform_game_action(action):
     if "+" in action:
         b_action = action.split("+")
         times = int(b_action[1])
         for _ in range(0, times):
-            await asyncio.sleep(0.5)
-            await act_on_action(b_action[0])
+            sleep(0.5)
+            act_on_action(b_action[0])
     else:
-        await act_on_action(action)
+        act_on_action(action)
 
 
-async def check_game_action(action: str):
+def check_game_action(action: str):
     keywords = ("!a", "!b", "!start", "!select", "!lb", "!rb", "!u", "!up", "!d", "!down", "!l", "!left", "!r", "!right")
     if action.startswith(keywords):
-        await perform_game_action(action)
+        perform_game_action(action)
 
 
 class DiscordClient(discord.Client):
@@ -142,7 +143,8 @@ class DiscordClient(discord.Client):
             if msgcnt > 1:
                 for msg in all_messages:
                     if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
-                        await check_game_action(str(msg.content))
+                        t = threading.Thread(target=check_game_action, kwargs={"action": str(msg.content)})
+                        t.start()
                 await self.fastnuke()
 
             if msgcnt == 0:
@@ -164,7 +166,8 @@ class DiscordClient(discord.Client):
             for msg in all_messages:
                 if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
                     
-                    await check_game_action(str(msg.content))
+                    t = threading.Thread(target=check_game_action, kwargs={"action": str(msg.content)})
+                    t.start()#await check_game_action(str(msg.content))
             
             
             await self.fastnuke()
