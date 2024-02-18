@@ -10,15 +10,20 @@ from dotenv import load_dotenv
 import os
 import sys
 
-load_dotenv()
+
+if not os.getenv("API_KEY"):
+    load_dotenv()
+    print("Loaded environment")
 
 logger = logging.getLogger()
-api_key = os.getenv("DISCORD_API_TOKEN")
+api_key = os.getenv("API_KEY")
 channel_id = int(os.getenv("CHANNEL_ID"))
 
 message_buffer = []
 
 thread_killer = True
+
+action_queue = []
 
 
 if sys.platform.startswith("win"):
@@ -49,6 +54,18 @@ def getwindowrect(window_title="mGBA"):
             return [int(output[2]), int(output[3]) + 2, int(output[4]), int(output[5]) - 21]
         except:
             return None
+        
+
+def action_queue_runner():
+    while True:
+        while action_queue:
+            action = action_queue.pop(0)
+            print(f"Executing: {action}")
+            act_on_action(action=action)
+            
+
+action_thread = threading.Thread(target=action_queue_runner)
+action_thread.start()
 
 
 def act_on_action(action):
@@ -98,11 +115,13 @@ def perform_game_action(action):
     if "+" in action:
         b_action = action.split("+")
         times = int(b_action[1])
+        if times > 10:
+            times = 10
         for _ in range(0, times):
-            sleep(0.5)
-            act_on_action(b_action[0])
+            #sleep(0.5)
+            action_queue.append(b_action[0])
     else:
-        act_on_action(action)
+        action_queue.append(action)
 
 
 def check_game_action(action: str):
@@ -148,7 +167,7 @@ class DiscordClient(discord.Client):
                 await self.fastnuke()
 
             if msgcnt == 0:
-                frame = await channel.send(file=discord.File("frame.png"))
+                await channel.send(file=discord.File("frame.png"))
 
             if msgcnt == 1:
                 l_msg = all_messages[0]
@@ -297,14 +316,14 @@ def first_time_setup():
     disc_api_key = input("Enter bots api key:")
     chan = input("Enter channel id:")
 
-    with open(".env", "r") as file:
+    with open("/app/.env", "r") as file:
         lines = file.readlines()
 
-    with open(".env", "w") as file:
+    with open("/app/.env", "w") as file:
         for x, line in enumerate(lines):
 
-            if line.startswith("DISCORD_API_TOKEN="):
-                lines[x] = f"DISCORD_API_TOKEN={disc_api_key}"
+            if line.startswith("API_KEY="):
+                lines[x] = f"API_KEY={disc_api_key}"
 
             if line.startswith("CHANNEL_ID="):
                 lines[x] = f"CHANNEL_ID={chan}"
