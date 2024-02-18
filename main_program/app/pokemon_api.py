@@ -140,41 +140,9 @@ class DiscordClient(discord.Client):
 
     # we're gonna try and get it to just edit the last message with the new screenshot as to create a more 'game-esk' screen
     async def game(self):
-        
-        channel = self.get_channel(channel_id)
-        msgcnt = 0
-        all_messages: List[discord.Message] = []
 
-        async for x in channel.history(limit=None):
-            msgcnt += 1
-            all_messages.append(x)
-
-        gamewin = getwindowrect()
-        if gamewin:
-
-            if operating_system == "windows":
-                screen = pyg.screenshot().crop(gamewin)
-            else:
-                screen = pyg.screenshot(region=(gamewin))
-
-            screen.save("frame.png")
-
-            if msgcnt > 1:
-                for msg in all_messages:
-                    if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
-                        t = threading.Thread(target=check_game_action, kwargs={"action": str(msg.content)})
-                        t.start()
-                await self.fastnuke()
-
-            if msgcnt == 0:
-                await channel.send(file=discord.File("frame.png"))
-
-            if msgcnt == 1:
-                l_msg = all_messages[0]
-                await l_msg.edit(attachments=[discord.File("frame.png")], content="Commands:\n\n!a !b !start !select !lb !rb !up !down !left !right\n\nIf you tag a + after a command followed by a number ex: 'up+5' the bot will run that command that many times!\n\n")
-
-            #await asyncio.sleep(1)
-
+        while True:
+            channel = self.get_channel(channel_id)
             msgcnt = 0
             all_messages: List[discord.Message] = []
 
@@ -182,18 +150,51 @@ class DiscordClient(discord.Client):
                 msgcnt += 1
                 all_messages.append(x)
 
-            for msg in all_messages:
-                if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
-                    
-                    t = threading.Thread(target=check_game_action, kwargs={"action": str(msg.content)})
-                    t.start()#await check_game_action(str(msg.content))
-            
-            
-            await self.fastnuke()
+            gamewin = getwindowrect()
+            if gamewin:
 
-            
-        else:
-            print("Failed to capture game window!")
+                if operating_system == "windows":
+                    screen = pyg.screenshot().crop(gamewin)
+                else:
+                    screen = pyg.screenshot(region=(gamewin))
+
+                screen.save("frame.png")
+
+                if msgcnt > 1:
+                    for msg in all_messages:
+                        if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
+                            t = threading.Thread(target=check_game_action, kwargs={"action": str(msg.content)})
+                            t.start()
+                    await self.fastnuke()
+
+                if msgcnt == 0:
+                    await channel.send(file=discord.File("frame.png"))
+
+                if msgcnt == 1:
+                    l_msg = all_messages[0]
+                    await l_msg.edit(attachments=[discord.File("frame.png")], content="Commands:\n\n!a !b !start !select !lb !rb !up !down !left !right\n\nIf you tag a + after a command followed by a number ex: 'up+5' the bot will run that command that many times!\n\n")
+
+                #await asyncio.sleep(1)
+
+                msgcnt = 0
+                all_messages: List[discord.Message] = []
+
+                async for x in channel.history(limit=None):
+                    msgcnt += 1
+                    all_messages.append(x)
+
+                for msg in all_messages:
+                    if not msg.author.name == "actes_plays_pokemon" and str(msg.content).startswith("!"):
+                        
+                        t = threading.Thread(target=check_game_action, kwargs={"action": str(msg.content)})
+                        t.start()#await check_game_action(str(msg.content))
+                
+                
+                await self.fastnuke()
+
+                
+            else:
+                print("Failed to capture game window!")
     
 
     # fast nuke is for our refresh, hence we're skipping our own stuff, since well if we edit our last message we're chilling.
