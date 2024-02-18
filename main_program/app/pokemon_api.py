@@ -107,7 +107,9 @@ async def perform_game_action(action):
 async def check_game_action(action: str):
     keywords = ("!a", "!b", "!start", "!select", "!lb", "!rb", "!u", "!up", "!d", "!down", "!l", "!left", "!r", "!right")
     if action.startswith(keywords):
-        await perform_game_action(action)
+        thread = threading.Thread(target=perform_game_action)
+        thread.run
+        #await perform_game_action(action)
 
 
 class DiscordClient(discord.Client):
@@ -152,7 +154,7 @@ class DiscordClient(discord.Client):
                 l_msg = all_messages[0]
                 await l_msg.edit(attachments=[discord.File("frame.png")], content="Commands:\n\n!a !b !start !select !lb !rb !up !down !left !right\n\nIf you tag a + after a command followed by a number ex: 'up+5' the bot will run that command that many times!\n\n")
 
-            await asyncio.sleep(1)
+            #await asyncio.sleep(1)
 
             msgcnt = 0
             all_messages: List[discord.Message] = []
@@ -385,11 +387,13 @@ def main():
                 return
             
             if message == "/start_window":
-                start_game_window()
+                thread = threading.Thread(target=start_game_window)
+                thread.start()
 
             if message == "/game":
                 if not is_game_up:
-                    start_game_window()
+                    thread = threading.Thread(target=start_game_window)
+                    thread.start()
 
                 if is_game_up:
                     if not thread_killer:
