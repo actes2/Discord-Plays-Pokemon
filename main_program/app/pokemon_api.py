@@ -107,9 +107,7 @@ async def perform_game_action(action):
 async def check_game_action(action: str):
     keywords = ("!a", "!b", "!start", "!select", "!lb", "!rb", "!u", "!up", "!d", "!down", "!l", "!left", "!r", "!right")
     if action.startswith(keywords):
-        thread = threading.Thread(target=perform_game_action)
-        thread.run
-        #await perform_game_action(action)
+        await perform_game_action(action)
 
 
 class DiscordClient(discord.Client):
