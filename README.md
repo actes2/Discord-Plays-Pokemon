@@ -41,7 +41,7 @@ For setting up the discord bot, you'll need to just provision a dedicated bot wi
 
 ## Deployment
 
-Make sure you have `Docker` installed you can get it (here)[https://docs.docker.com/engine/install/]
+Make sure you have `Docker` installed you can get it [here](https://docs.docker.com/engine/install/)
 
 After setting up the discord bot, add the bot to your server, and give it a specific channel
 >Note renaming the bot may mess it up
