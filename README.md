@@ -1,4 +1,4 @@
-# Pokemon VNC
+# Discord Plays Pokemon... through a Bot and a Docker container
 `Twitch Plays Pokemon`-like, for any discord server
 
 ## How does it work?
