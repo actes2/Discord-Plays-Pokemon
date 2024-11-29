@@ -9,6 +9,7 @@ COPY ./docker/.Xauthority /root/
 ENV DISPLAY=:20
 ENV USER=root
 ENV DEBIAN_FRONTEND noninteractive
+ENV AUTO=start
 EXPOSE 8894:8894
 
 RUN apt-get update && \
